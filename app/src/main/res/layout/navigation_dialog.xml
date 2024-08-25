@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/body"
+    android:padding="24dp">
+
+    <Button
+        android:id="@+id/scan_drink_page_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scan New Drink" />
+
+    <Button
+        android:id="@+id/user_profile_page_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Profile" />
+
+    <Button
+        android:id="@+id/scanning_history_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scanning History" />
+
+    <Button
+        android:id="@+id/logout_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:textColor="@color/white"
+        android:text="Logout" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/home_page_button"
+        android:text="Home Page"/>
+
+</LinearLayout>

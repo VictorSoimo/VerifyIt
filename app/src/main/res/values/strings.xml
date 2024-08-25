@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Real_app</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="rb_user">User</string>
+    <string name="rb_admin">Admin</string>
+    <string name="register_button">Register</string>
+    <string name="login_button">Login</string>
+    <string name="appname">VERIFY IT</string>
+    <string name="user_text">Fill In your Details to Login</string>
+    <string name="lorem_ipsum">LOREM IPSUM</string>
+</resources>

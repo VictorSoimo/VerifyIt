@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="selector_background">#009ca7</color>
+    <color name="radio_group">#43df8b</color>
+    <color name="bottom_navbar">#FF000000</color>
+    <color name="top_navbar">#009ca7</color>
+    <color name="body">#003153</color>
+    <color name="buttonred">#F71100</color>
+    <color name="gray">#837F7F</color>
+</resources>

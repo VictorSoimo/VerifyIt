@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "796079620999",
+    "firebase_url": "https://verify-it-ded84-default-rtdb.firebaseio.com",
+    "project_id": "verify-it-ded84",
+    "storage_bucket": "verify-it-ded84.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796079620999:android:8502364fffc1e22b9dc922",
+        "android_client_info": {
+          "package_name": "com.food.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4Ep90JntBJme-Nii413XSVkFjoysUrCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796079620999:android:e192de684b102d899dc922",
+        "android_client_info": {
+          "package_name": "com.food.real_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4Ep90JntBJme-Nii413XSVkFjoysUrCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796079620999:android:2fc8a74c82a8b54d9dc922",
+        "android_client_info": {
+          "package_name": "com.food.verifyit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4Ep90JntBJme-Nii413XSVkFjoysUrCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
