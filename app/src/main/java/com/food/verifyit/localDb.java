@@ -30,6 +30,7 @@ public class localDb extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE users (idNnumber TEXT UNIQUE PRIMARY KEY, username TEXT, email TEXT UNIQUE, password TEXT)");
 
         db.execSQL("CREATE TABLE drinks (drinkcode TEXT PRIMARY KEY , drinkname TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, manufacturer TEXT)");
+
     }
 
     @Override
@@ -42,7 +43,7 @@ public class localDb extends SQLiteOpenHelper {
 
     public void resetDatabase() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DROP TABLE IF EXISTS users");
+
         db.execSQL("DROP TABLE IF EXISTS drinks");
         onCreate(db);
     }

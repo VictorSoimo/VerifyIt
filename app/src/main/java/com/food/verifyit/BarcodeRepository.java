@@ -1,5 +1,6 @@
 package com.food.verifyit;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -25,4 +26,5 @@ public class BarcodeRepository {
     public LiveData<Drinkscanned> getDrinkLiveData() {
         return drinkLiveData;
     }
+
 }

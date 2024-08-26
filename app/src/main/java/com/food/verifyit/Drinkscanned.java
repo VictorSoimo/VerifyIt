@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.LifecycleOwner;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,9 +21,13 @@ public class Drinkscanned {
     private String manufacturer;
     private localDb drinksDb;
     private Context context;
+    private BarcodeRepository barcodeRepository;
 
     //constructor
     public Drinkscanned(Context context) {
+        if(context==null){
+            throw new IllegalArgumentException("Context cannot be null");
+        }
         drinksDb = new localDb(context);
     }
 
@@ -64,28 +69,40 @@ public class Drinkscanned {
     }
 
 
+
+    public boolean doesDrinkExist(String drinkcode) {
+        boolean exists = false;
+        SQLiteDatabase db = drinksDb.getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            cursor = db.query(
+                    "drinks",
+                    new String[]{"drinkcode"},
+                    "drinkcode = ?",
+                    new String[]{drinkcode},
+                    null, null, null
+            );
+            exists = cursor.getCount() > 0;
+        } finally {
+            if (cursor != null) {
+                cursor.close(); // Ensure cursor is closed
+            }
+        }
+        return exists;
+    }
+
     public void addDrink() {
+        LocalDateTime now = LocalDateTime.now();
         SQLiteDatabase db = drinksDb.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("code", getDrinkcode());
-        values.put("name", getDrinkname());
-        values.put("scanned_at", String.valueOf(getTimescanned()));
+        values.put("drinkcode", getDrinkcode());
+        values.put("drinkname", getDrinkname());
+        values.put("scanned_at", String.valueOf(now));
         values.put("manufacturer", getManufacturer());
         db.insert("drinks", null, values);
         db.close();
     }
-    private void showManufacturerDetails(Drinkscanned drink) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(drink.getContext());
-        builder.setTitle("Manufacturer Details");
 
-        String message = "Product code: " + drink.getDrinkcode() + "\n" +
-                "Manufacturer: " + drink.getManufacturer() + "\n" +
-                "Product: " + drink.getDrinkname();
-
-        builder.setMessage(message);
-        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
-    }
 
     // Get all Drinks
     public List<Drinkscanned> getAllDrinks() {
@@ -93,15 +110,15 @@ public class Drinkscanned {
         SQLiteDatabase db = drinksDb.getReadableDatabase();
         Cursor cursor = db.query(
                 "drinks",
-                new String[]{"id", "code", "name", "scanned_at", "manufacturer"},
+                new String[]{ "drinkcode", "drinkname", "scanned_at", "manufacturer"},
                 null, null, null, null, null);
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 Drinkscanned drink = new Drinkscanned(drinksDb.getContext());
-                drink.setDrinkcode(cursor.getString(cursor.getColumnIndex("code")));
-                drink.setDrinkname(cursor.getString(cursor.getColumnIndex("name")));
-                drink.setTimescanned(LocalDateTime.now());
+                drink.setDrinkcode(cursor.getString(cursor.getColumnIndex("drinkcode")));
+                drink.setDrinkname(cursor.getString(cursor.getColumnIndex("drinkname")));
+                drink.setTimescanned(LocalDateTime.parse(cursor.getString(cursor.getColumnIndex("scanned_at"))));
                 drink.setManufacturer(cursor.getString(cursor.getColumnIndex("manufacturer")));
                 drinkList.add(drink);
             }
@@ -114,8 +131,8 @@ public class Drinkscanned {
     public void updateDrink() {
         SQLiteDatabase db = drinksDb.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("code", getDrinkcode());
-        values.put("name", getDrinkname());
+        values.put("drinkcode", getDrinkcode());
+        values.put("drinkname", getDrinkname());
         values.put("scanned_at", String.valueOf(getTimescanned()));
         values.put("manufacturer", getManufacturer());
         db.update("drinks", values, "drinkcode = ?", new String[]{getDrinkcode()});
@@ -128,6 +145,7 @@ public class Drinkscanned {
         db.delete("drinks", "drinkcode = ?", new String[]{getDrinkcode()});
         db.close();
     }
+
 
 }
 

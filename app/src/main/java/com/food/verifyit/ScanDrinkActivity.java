@@ -18,6 +18,8 @@ import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -32,14 +34,18 @@ public class ScanDrinkActivity extends AppCompatActivity {
     private Button scanManualBtn;
     private DecoratedBarcodeView barcodeView;
     private FloatingActionButton dialogButton;
+    private BarcodeRepository barcodeRepository;
+    private Drinkscanned drink1;
+
 
     private User user;
-    public static final String BASE_URL = "https://10.0.2.2/";
+    public static final String BASE_URL = "http://10.0.2.2/";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan_qr_code);
 
+        drink1=new Drinkscanned(this);
         user=new User(this);
         title=findViewById(R.id.title);
         resultTitle=findViewById(R.id.result_title);
@@ -71,6 +77,19 @@ public class ScanDrinkActivity extends AppCompatActivity {
         } else {
             startScanning();
         }
+
+        barcodeRepository = BarcodeRepository.getInstance();
+        // Observe the LiveData
+        barcodeRepository.getDrinkLiveData().observe(this, drink -> {
+            if (drink != null) {
+                // Show the manufacturer details in a dialog
+                checkIfDrinkExistsAndAdd(this,drink.getDrinkcode());
+                showManufacturerDetails(drink);
+            }
+            else{
+                Toast.makeText(this,"Drink object is null",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     private void showManualInputDialog() {
         // Inflate the dialog layout
@@ -129,6 +148,18 @@ public class ScanDrinkActivity extends AppCompatActivity {
         barcodeView.decodeContinuous(callback);
     }
 
+    private void showManufacturerDetails(Drinkscanned drink) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Manufacturer Details");
+
+        String message = "Product code: " + drink.getDrinkcode() + "\n" +
+                "Manufacturer: " + drink.getManufacturer() + "\n" +
+                "Product: " + drink.getDrinkname();
+
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        builder.create().show();
+    }
 
 
     private void showNavigationDialog() {
@@ -206,6 +237,27 @@ public class ScanDrinkActivity extends AppCompatActivity {
             @Override
             public void onFailure(String errormessage) {
 
+            }
+        });
+    }
+    public void checkIfDrinkExistsAndAdd(LifecycleOwner lifecycleOwner, String drinkcode) {
+        // Observe LiveData to get the latest drinkcode
+        barcodeRepository=BarcodeRepository.getInstance();
+        barcodeRepository.getDrinkLiveData().observe(this, drink -> {
+            if (drink != null) {
+                String scannedDrinkcode = drink.getDrinkcode();
+
+                // Perform the database check in a background thread
+                new Thread(() -> {
+                    boolean exists = drink1.doesDrinkExist(scannedDrinkcode);
+                    if (exists) {
+                        drink1.updateDrink();
+                        // Handle case where drink exists
+                    } else {
+                        // Handle case where drink does not exist
+                        drink1.addDrink();
+                    }
+                }).start();
             }
         });
     }
