@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -135,7 +136,7 @@ public class User {
     public void addUser() {
         SQLiteDatabase db = userDb.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("idNumber", getUserid());
+        values.put("id_number", getUserid());
         values.put("username", getUsername());
         values.put("email", getEmail());
         values.put("password", getPassword());
@@ -197,12 +198,36 @@ public class User {
         db.close();
     }
 
+
     // Delete user account
-    public void deleteUser(int id) {
+    public void deleteUser() {
+        String id=getUserIdFromPreferences();
         SQLiteDatabase db = userDb.getWritableDatabase();
         db.delete("users", "id_number = ?", new String[]{String.valueOf(id)});
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        if (user != null) {
+            user.delete().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Account deletion successful
+                    Log.d("DeleteAccount", "User account deleted.");
+                    Toast.makeText(getContext(), "Account deleted successfully.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Handle failure
+                    Log.e("DeleteAccount", "Failed to delete user account.", task.getException());
+                    Toast.makeText(getContext(), "Failed to delete account. Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(getContext(), "No user is currently logged in.", Toast.LENGTH_SHORT).show();
+        }
+        clearUserId();
         db.close();
+
     }
+
+
+
 
     // Store user ID in shared preferences
     public void storeUserId(String userId) {
@@ -210,6 +235,10 @@ public class User {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", userId);
         editor.apply(); // or editor.commit();
+    }
+    public String getUserIdFromPreferences() {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
+        return sharedPreferences.getString("USER_ID", null); // Returns null if no value is found
     }
 
     // Clear user ID from shared preferences
@@ -238,6 +267,31 @@ public class User {
         }
 
         return -1; // Return -1 if user not found
+    }
+    public String getEmailOfCurrentUSer() {
+        String uid = getUserIdFromPreferences();
+        if (uid == null) {
+            throw new IllegalArgumentException("UID cannot be null");
+        }
+        SQLiteDatabase db1 = userDb.getReadableDatabase();
+        Cursor cursor = db1.query(
+                "users",
+                new String[]{"email"},
+                "id_number = ?",
+                new String[]{uid},
+                null, null, null
+        );
+
+        String currentUserEmail = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            currentUserEmail = cursor.getString(cursor.getColumnIndex("email"));
+            cursor.close();
+
+        }
+        return currentUserEmail;
+    }
+    public void changePassword(String oldpass, String newpass){
+
     }
 
 }

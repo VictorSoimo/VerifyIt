@@ -27,7 +27,7 @@ public class localDb extends SQLiteOpenHelper {
 
     public void onCreate(SQLiteDatabase db) {
         // Creating tables for my database
-        db.execSQL("CREATE TABLE users (idNnumber TEXT UNIQUE PRIMARY KEY, username TEXT, email TEXT UNIQUE, password TEXT)");
+        db.execSQL("CREATE TABLE users (id_number TEXT UNIQUE PRIMARY KEY, username TEXT, email TEXT UNIQUE, password TEXT)");
 
         db.execSQL("CREATE TABLE drinks (drinkcode TEXT PRIMARY KEY , drinkname TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, manufacturer TEXT)");
 
@@ -41,11 +41,14 @@ public class localDb extends SQLiteOpenHelper {
         return context;
     }
 
-    public void resetDatabase() {
+    public void resetDrinksTable() {
         SQLiteDatabase db = this.getWritableDatabase();
-
         db.execSQL("DROP TABLE IF EXISTS drinks");
-        onCreate(db);
+        createDrinksTable(db);
+    }
+    public void createDrinksTable(SQLiteDatabase db){
+        db.execSQL("CREATE TABLE drinks (drinkcode TEXT PRIMARY KEY , drinkname TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, manufacturer TEXT)");
+
     }
 
 

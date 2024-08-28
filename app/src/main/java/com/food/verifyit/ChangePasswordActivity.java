@@ -12,11 +12,13 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
     private TextView currentPassword, newPassword, confirmPassword;
     private Button submitButton, backNavigation;
+    private User user;
 
         protected void onCreate(Bundle savedInstanceState){
             super.onCreate(savedInstanceState);
         setContentView(R.layout.change_password);
 
+        user=new User(this);
         currentPassword=findViewById(R.id.til_current_password);
         newPassword=findViewById(R.id.til_new_password);
         confirmPassword=findViewById(R.id.til_confirm_new_password);
@@ -33,7 +35,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
     }
 
     private void changePassword(){
-
+            String oldpass=currentPassword.getText().toString().trim();
+            String newpass=newPassword.getText().toString().trim();
+        user.changePassword(oldpass, newpass);
     }
 
     private void navigateToPreviousPage(){

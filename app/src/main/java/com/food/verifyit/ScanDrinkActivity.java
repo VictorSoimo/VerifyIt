@@ -1,6 +1,5 @@
 package com.food.verifyit;
 
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -11,13 +10,7 @@ import android.widget.*;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.journeyapps.barcodescanner.BarcodeCallback;
-import com.journeyapps.barcodescanner.BarcodeResult;
-import com.journeyapps.barcodescanner.DecoratedBarcodeView;
-
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import androidx.work.Data;
@@ -25,57 +18,59 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.io.IOException;
 
 public class ScanDrinkActivity extends AppCompatActivity {
 
     private TextView title, resultTitle, scanResult;
     private Button scanManualBtn;
-    private DecoratedBarcodeView barcodeView;
     private FloatingActionButton dialogButton;
     private BarcodeRepository barcodeRepository;
     private Drinkscanned drink1;
-
+    private localDb db;
+    private CameraPreview cameraPreview;
 
     private User user;
-    public static final String BASE_URL = "http://10.0.2.2/";
+    public static final String BASE_URL = "http://192.168.0.102/";
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan_qr_code);
 
-        drink1=new Drinkscanned(this);
-        user=new User(this);
-        title=findViewById(R.id.title);
-        resultTitle=findViewById(R.id.result_title);
-        scanResult=findViewById(R.id.scanned_data_view);
-        scanManualBtn=findViewById(R.id.scan_manual_btn);
-        barcodeView=findViewById(R.id.barcode_scanner);
-        dialogButton=findViewById(R.id.dialog_button);
+        cameraPreview = findViewById(R.id.camera_preview);
+        db = new localDb(this);
+        drink1 = new Drinkscanned(this);
+        user = new User(this);
+        title = findViewById(R.id.title);
+        resultTitle = findViewById(R.id.result_title);
+        scanResult = findViewById(R.id.scanned_data_view);
+        scanManualBtn = findViewById(R.id.scan_manual_btn);
+        dialogButton = findViewById(R.id.dialog_button);
 
-        dialogButton.setOnClickListener(v-> showNavigationDialog());
-        scanManualBtn.setOnClickListener(v->{
-            showManualInputDialog();
-        });
+        dialogButton.setOnClickListener(v -> showNavigationDialog());
+        scanManualBtn.setOnClickListener(v -> showManualInputDialog());
 
         // Initialize camera permission launcher
         ActivityResultLauncher<String> cameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
-                        startScanning();
+                        startCameraPreview();
                     } else {
                         Toast.makeText(ScanDrinkActivity.this, "Camera permission required", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
 
-// Request camera permission if not already granted
+        // Request camera permission if not already granted
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
         } else {
-            startScanning();
+            startCameraPreview();
         }
 
         barcodeRepository = BarcodeRepository.getInstance();
@@ -83,14 +78,29 @@ public class ScanDrinkActivity extends AppCompatActivity {
         barcodeRepository.getDrinkLiveData().observe(this, drink -> {
             if (drink != null) {
                 // Show the manufacturer details in a dialog
-                checkIfDrinkExistsAndAdd(this,drink.getDrinkcode());
+                checkIfDrinkExistsAndAdd(this, drink.getDrinkcode());
                 showManufacturerDetails(drink);
-            }
-            else{
-                Toast.makeText(this,"Drink object is null",Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Drink object is null", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startCameraPreview(); // Ensure camera preview is started when the activity resumes
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Optionally stop camera preview
+        if (cameraPreview != null) {
+            cameraPreview.stop();
+        }
+    }
+
     private void showManualInputDialog() {
         // Inflate the dialog layout
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -119,6 +129,7 @@ public class ScanDrinkActivity extends AppCompatActivity {
 
         dialog.show();
     }
+
     private void queryBarcode(String drinkcode) {
         Data inputData = new Data.Builder()
                 .putString("drinkCode", drinkcode)
@@ -130,22 +141,12 @@ public class ScanDrinkActivity extends AppCompatActivity {
 
         WorkManager.getInstance(this).enqueue(workRequest);
     }
-    private final BarcodeCallback callback = new BarcodeCallback() {
-        @Override
-        public void barcodeResult(BarcodeResult result) {
-            if (result.getText() != null) {
-                String scannedData = result.getText();
-                scanResult.setText("Scanned Data: " + scannedData);
-                // Pass the scanned data to the API for querying
-                queryBarcode(scannedData);
-            }
-        }
-    };
 
-    private void startScanning(){
-
-        barcodeView.initializeFromIntent(getIntent());
-        barcodeView.decodeContinuous(callback);
+    private void startCameraPreview() {
+        cameraPreview.start(scannedData -> {
+            scanResult.setText("Scanned Data: " + scannedData);
+            queryBarcode(scannedData);
+        });
     }
 
     private void showManufacturerDetails(Drinkscanned drink) {
@@ -160,7 +161,6 @@ public class ScanDrinkActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
         builder.create().show();
     }
-
 
     private void showNavigationDialog() {
         // Inflate the dialog's layout
@@ -178,30 +178,26 @@ public class ScanDrinkActivity extends AppCompatActivity {
         // Set up the dialog buttons
         Button homePageButton = dialogView.findViewById(R.id.home_page_button);
         Button userProfilePageButton = dialogView.findViewById(R.id.user_profile_page_button);
-        Button scanningHistoryButton=dialogView.findViewById(R.id.scanning_history_button);
-        Button logoutButton=dialogView.findViewById(R.id.logout_button);
+        Button scanningHistoryButton = dialogView.findViewById(R.id.scanning_history_button);
+        Button logoutButton = dialogView.findViewById(R.id.logout_button);
 
         // Set listeners
         homePageButton.setOnClickListener(v -> {
-
             navigateToHomePage();
             dialog.dismiss();
         });
 
         userProfilePageButton.setOnClickListener(v -> {
-
             navigateToUserProfilePage();
             dialog.dismiss();
         });
 
         scanningHistoryButton.setOnClickListener(v -> {
-
             navigateToScanHistoryPage();
             dialog.dismiss();
         });
 
         logoutButton.setOnClickListener(v -> {
-
             logout();
             dialog.dismiss();
         });
@@ -209,40 +205,37 @@ public class ScanDrinkActivity extends AppCompatActivity {
 
     // Methods to handle navigation
     private void navigateToHomePage() {
-
-        Intent intent=new Intent(ScanDrinkActivity.this, MainActivity.class);
+        Intent intent = new Intent(ScanDrinkActivity.this, MainActivity.class);
         startActivity(intent);
     }
 
     private void navigateToUserProfilePage() {
-
-        Intent intent=new Intent(ScanDrinkActivity.this, UserProfileActivity.class);
+        Intent intent = new Intent(ScanDrinkActivity.this, UserProfileActivity.class);
         startActivity(intent);
     }
+
     private void navigateToScanHistoryPage() {
-
-        Intent intent=new Intent(ScanDrinkActivity.this, ScanHistoryActivity.class);
+        Intent intent = new Intent(ScanDrinkActivity.this, ScanHistoryActivity.class);
         startActivity(intent);
     }
-    public void logout(){
 
+    public void logout() {
         user.logout(new CallBack() {
             @Override
             public void onSuccess() {
-                Intent intent=new Intent(ScanDrinkActivity.this, loginActivity.class);
+                Intent intent = new Intent(ScanDrinkActivity.this, loginActivity.class);
                 startActivity(intent);
-
             }
 
             @Override
             public void onFailure(String errormessage) {
-
+                // Handle failure
             }
         });
     }
+
     public void checkIfDrinkExistsAndAdd(LifecycleOwner lifecycleOwner, String drinkcode) {
-        // Observe LiveData to get the latest drinkcode
-        barcodeRepository=BarcodeRepository.getInstance();
+        barcodeRepository = BarcodeRepository.getInstance();
         barcodeRepository.getDrinkLiveData().observe(this, drink -> {
             if (drink != null) {
                 String scannedDrinkcode = drink.getDrinkcode();
@@ -262,6 +255,3 @@ public class ScanDrinkActivity extends AppCompatActivity {
         });
     }
 }
-
-
-

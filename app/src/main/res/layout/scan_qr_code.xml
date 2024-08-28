@@ -43,12 +43,12 @@
             android:textSize="20sp"
             android:id="@+id/scan_manual_btn"/>
 
-        <com.journeyapps.barcodescanner.DecoratedBarcodeView
-            android:id="@+id/barcode_scanner"
-            android:layout_width="wrap_content"
-            android:layout_height="292dp"
-            android:layout_marginTop="100dp"
-            android:padding="20dp"/>
+        <com.food.verifyit.CameraPreview
+            android:id="@+id/camera_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
 
         <TextView
             android:id="@+id/result_title"

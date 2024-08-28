@@ -32,6 +32,9 @@ public class UserProfileActivity extends AppCompatActivity {
         changePasswordButton=findViewById(R.id.btn_change_password);
         dialogButton=findViewById(R.id.dialog_button);
 
+        String mail=user.getEmailOfCurrentUSer();
+        userEmail.setText(mail);
+
         deleteAccountButton.setOnClickListener(v->{
             deleteAccount();
         });
@@ -47,9 +50,16 @@ public class UserProfileActivity extends AppCompatActivity {
 
     public void changePassword(){
 
+        Intent intent=new Intent(UserProfileActivity.this, ChangePasswordActivity.class);
+        startActivity(intent);
     }
 
     public void deleteAccount(){
+
+
+        user.deleteUser();
+        logout();
+        finish();
 
     }
 

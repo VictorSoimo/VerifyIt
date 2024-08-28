@@ -35,11 +35,19 @@ dependencies {
     implementation libs.material
     implementation libs.firebase.auth
     implementation libs.firebase.config
+    implementation libs.camera.core
+    implementation libs.camera.view
+    implementation libs.camera.lifecycle.v121
+    implementation libs.camera.camera2.v121
+    implementation libs.play.services.mlkit.barcode.scanning
+
+
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.zxing.android.embedded.v410
     implementation libs.retrofit
+    implementation libs.firebase.messaging
     implementation libs.converter.gson
     implementation libs.logging.interceptor
     implementation libs.core
@@ -47,4 +55,5 @@ dependencies {
     implementation libs.gms.google.services
     implementation libs.work.runtime
     implementation libs.guava
+
 }
